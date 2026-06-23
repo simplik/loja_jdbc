@@ -87,8 +87,27 @@ public Seller findById(Integer id) {
     }
     @Override
     public void update(Seller seller) {
-        // Implementação do método para atualizar um vendedor no banco de dados
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                "UPDATE Seller " + 
+                "SET name = ?,email = ?,birth_date = ?, " +
+                "base_salary = ?, department_id = ?" +
+                "WHERE id = ?")) {
+        pstmt.setString(1, seller.getName());
+        pstmt.setString(2, seller.getEmail());
+        pstmt.setDate(3, Date.valueOf(seller.getBirthDate()));
+        pstmt.setDouble(4, seller.getBaseSalary());
+        pstmt.setInt(5, seller.getDepartment().getId());
+        pstmt.setInt(6, seller.getId());
+        int affectedRows = pstmt.executeUpdate();
+        if (affectedRows > 0) {
+            System.out.println("Vendedor atualizado!");
+        }
+    } catch (SQLException e) {
+        System.err.println("Erro ao atualizar vendedor:");
+        e.printStackTrace();
     }
+}
+
     @Override
     public void deleteById(Integer id) {
         // Implementação do método para excluir um vendedor do banco de dados por ID
