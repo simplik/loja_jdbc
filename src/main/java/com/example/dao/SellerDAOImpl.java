@@ -38,11 +38,36 @@ public class SellerDAOImpl implements SellerDAO {
         }
         return sellers; // Retorna a lista de vendedores encontrados
     }
-    @Override
-    public Seller findById(Integer id) {
-        // Implementação do método para encontrar um vendedor por ID no banco de dados
-        return null; // Retorne o vendedor encontrado ou null se não encontrado
+@Override
+public Seller findById(Integer id) {
+    try (PreparedStatement pstmt = conn.prepareStatement(
+            "SELECT seller.*, department.name AS department_name " +
+            "FROM seller " +
+            "INNER JOIN department ON seller.department_id = department.id " +
+            "WHERE seller.id = ?")) {
+        pstmt.setInt(1, id);
+        try (ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                Seller seller = new Seller();
+                seller.setId(rs.getInt("id"));
+                seller.setName(rs.getString("name"));
+                seller.setEmail(rs.getString("email"));
+                seller.setBirthDate(rs.getDate("birth_date").toLocalDate());
+                seller.setBaseSalary(rs.getDouble("base_salary"));
+                Department department = new Department();
+                department.setId(rs.getInt("department_id"));
+                department.setName(rs.getString("department_name"));
+                seller.setDepartment(department);
+                return seller;
+            }
+        }
+    } catch (SQLException e) {
+        System.err.println("Erro ao buscar vendedor por ID:");
+        e.printStackTrace();
     }
+    return null;
+}
+
     @Override
     public void insert(Seller seller) {
         try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO seller (name, email, birth_date, base_salary, department_id) VALUES (?, ?, ?, ?, ?)")) {
